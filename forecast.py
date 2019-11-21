@@ -43,9 +43,13 @@ month_start = int(start.strftime('%m'))
 year_end = int(end.strftime('%Y'))
 month_end = int(end.strftime('%m'))
 
-# Get data for the sensor from the db and export it to a temporary csv file
+# Delete old files
 if os.path.exists("tmp.csv"): os.remove("tmp.csv")
+if os.path.exists("tmp_clean.csv"): os.remove("tmp_clean.csv")
+if os.path.exists("model.pkl"): os.remove("model.pkl")
+if os.path.exists("temp_plot.html"): os.remove("temp_plot.html")
 
+# Get data for the sensor from the db and export it to a temporary csv file
 print("Loading data records ...")
 first = True
 for year in range(year_start, year_end +1):
@@ -58,8 +62,9 @@ for year in range(year_start, year_end +1):
             # Request data from the db
             cursor = db.cursor()
             cursor.execute(query)
-            # Write to csv file74
+            # Write to csv file
             rows = cursor.fetchall()
+            cursor.close()
             column_names = [i[0] for i in cursor.description]
             fp = open('tmp.csv', 'a')
             csv_file = csv.writer(fp, delimiter=';')
