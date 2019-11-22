@@ -2,14 +2,14 @@
 AI based forecast script for predicting the particulate matter values of the future 🔮
 
 ## How to setup the dependencies for this script (tested for Ubuntu 16.04)
-1. Install facebook prophet (https://facebook.github.io/prophet/docs/installation.html#python)
+1. Install facebook prophet machine learning framework (https://facebook.github.io/prophet/docs/installation.html#python)
    * `$ apt-get update; apt-get upgrade -y`
    * `$ pip install fbprophet`
-2. Install pandas library (https://pandas.pydata.org/pandas-docs/stable/install.html):
-   * `$ pip install pandas`
-3. Install plotly library for creating graphs:
-   * `$ pip install plotly==4.3.0`
-4. Finished!
+2. Install other libraries:
+   * Pandas (https://pandas.pydata.org/pandas-docs/stable/install.html): `$ pip install pandas`
+   * Plotly (https://plot.ly/python/getting-started/): `$ pip install plotly==4.3.0`
+   * Tqdm (https://github.com/tqdm/tqdm): `$ pip install tqdm`
+3. Finished!
 
 If something doesn't work, feel free to write us an email: mrgames@outlook.de
 

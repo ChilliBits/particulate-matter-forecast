@@ -10,6 +10,20 @@ import csv
 import os
 import mysql.connector
 import argparse
+from tqdm import tqdm
+
+#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-Methods-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#
+
+def selectFrequency(freq):
+    switcher = {
+        "seconds": "S",
+        "minutes": "min",
+        "hours": "H",
+        "days": "D"
+    }
+    return switcher.get(freq, "D")
+
+#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-Main Program-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#
 
 # Constants
 YEAR_IN_MILLIS = 31540000000
@@ -22,7 +36,7 @@ parser = argparse.ArgumentParser(os.path.splitext(__file__)[0], description="Scr
 parser.add_argument("-s", "--sensor", help="The chip id for the sensor, whose date is to be consumed.", type=int, required=True)
 parser.add_argument("-f", "--from", help="The timestamp in milliseconds, where we have to beginn loading the data. Leave blank / not set this argument to provide the data from 1 year.", type=int, dest="date_from", default=(current_millis - YEAR_IN_MILLIS))
 parser.add_argument("-t", "--to", help="The timestamp in milliseconds, where we have to stop loading the data. Leave blank / not set this argument to provide the data till now.", type=int, dest="date_to", default=current_millis)
-parser.add_argument("-freq", "--frequency", help="The unit for the period which will be predicted. Use on of the following: minutes, days, months, years. Example: Pass -freq days and -p 10 to get the prediction for the next 10 days after the specified to datetime.", choices=['minutes', 'hours', 'days', 'months', 'years'], type=str.lower, default="days")
+parser.add_argument("-freq", "--frequency", help="The unit for the period which will be predicted. Use on of the following: seconds, minutes, hours, days. Example: Pass -freq hours and -p 10 to get the prediction for the next 10 hours after the specified to datetime.", choices=['seconds', 'minutes', 'hours', 'days'], type=str.lower, default="minutes")
 parser.add_argument("-p", "--periods", help="The periods which will be predicted. Example: Pass -freq days and -p 10 to get the prediction for the next 10 days after the specified to datetime.", type=int, default=10)
 args = parser.parse_args()
 
@@ -30,7 +44,7 @@ args = parser.parse_args()
 data_sensor = args.sensor
 data_from = args.date_from
 data_to = args.date_to
-frequency = args.frequency[0].upper()
+frequency = selectFrequency(args.frequency) #args.frequency[0].upper()
 periods = args.periods
 
 # Get start and end of date range
@@ -100,9 +114,35 @@ print("Pedicting ...")
 forecast = m.predict(future)
 print("Saving ai model ...")
 forecast.to_pickle("model.pkl")
-# forecast.head()
+print("Predicted values:")
+forecast_data = forecast[['ds', 'yhat', 'yhat_lower', 'yhat_upper']].tail(periods)
 
 # Dump the predicing result to a html file
-print("Saving dump ...")
-fig = plot_plotly(m=m, fcst=forecast)
-py.plot(fig)
+#print("Saving dump ...")
+#fig = plot_plotly(m=m, fcst=forecast)
+#fig.write_image("prediction.png")
+
+# Save predicted records to seperate databases
+print("Saving prediction to databases ...")
+db = config.connectToDbServer()
+for i in tqdm(range(periods)):
+    row = forecast_data.iloc[i]
+    # Get name of database
+    year = int(row.ds.strftime('%Y'))
+    month = int(row.ds.strftime('%m'))
+    db_name = "forecast_" + str(year) + "_" + (str(month) if(month > 9) else "0" + str(month))
+    try:
+        cursor = db.cursor()
+        cursor.execute("CREATE DATABASE IF NOT EXISTS " + db_name + ";")
+        cursor.close()
+        db = config.connectToDb(db_name)
+        cursor = db.cursor()
+        # print("CREATE TABLE IF NOT EXISTS forecast_" + str(data_sensor) + " (id INT NOT NULL AUTO_INCREMENT PRIMARY KEY, time VARCHAR(20), pm2_5 FLOAT, pm10 FLOAT, temp FLOAT, humidity FLOAT, pressure FLOAT, p1_limit_lower FLOAT, p1_limit_upper FLOAT);")
+        cursor.execute("CREATE TABLE IF NOT EXISTS forecast_" + str(data_sensor) + " (id INT NOT NULL AUTO_INCREMENT PRIMARY KEY, time VARCHAR(20), pm2_5 FLOAT, pm10 FLOAT, temp FLOAT, humidity FLOAT, pressure FLOAT, p1_limit_lower FLOAT, p1_limit_upper FLOAT);")
+        cursor.execute("INSERT INTO forecast_" + str(data_sensor) + " (time, pm2_5, pm10, temp, humidity, pressure, p1_limit_lower, p1_limit_upper) VALUES ('" + row.ds.strftime('%Y-%m-%d %H:%M:%S') + "', " + str(round(row.yhat, 2)) + ", 0, 0, 0, 0, " + str(round(row.yhat_lower, 2)) + ", " + str(round(row.yhat_upper, 2)) + ");")
+        cursor.close()
+    except mysql.connector.Error as err:
+        print("Exception during the writing process: " + str(err))
+
+# Finished
+print("Finished.")
