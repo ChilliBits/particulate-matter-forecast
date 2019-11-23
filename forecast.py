@@ -37,7 +37,7 @@ parser.add_argument("-s", "--sensor", help="The chip id for the sensor, whose da
 parser.add_argument("-f", "--from", help="The timestamp in milliseconds, where we have to beginn loading the data. Leave blank / not set this argument to provide the data from 1 year.", type=int, dest="date_from", default=(current_millis - YEAR_IN_MILLIS))
 parser.add_argument("-t", "--to", help="The timestamp in milliseconds, where we have to stop loading the data. Leave blank / not set this argument to provide the data till now.", type=int, dest="date_to", default=current_millis)
 parser.add_argument("-freq", "--frequency", help="The unit for the period which will be predicted. Use on of the following: seconds, minutes, hours, days. Example: Pass -freq hours and -p 10 to get the prediction for the next 10 hours after the specified to datetime.", choices=['seconds', 'minutes', 'hours', 'days'], type=str.lower, default="minutes")
-parser.add_argument("-p", "--periods", help="The periods which will be predicted. Example: Pass -freq days and -p 10 to get the prediction for the next 10 days after the specified to datetime.", type=int, default=10)
+parser.add_argument("-p", "--periods", help="The periods which will be predicted. Example: Pass -freq days and -p 10 to get the prediction for the next 10 days after the specified to datetime.", type=int, default=7200)
 args = parser.parse_args()
 
 # Start parameters
@@ -138,8 +138,8 @@ for i in tqdm(range(periods)):
         db = config.connectToDb(db_name)
         cursor = db.cursor()
         # print("CREATE TABLE IF NOT EXISTS forecast_" + str(data_sensor) + " (id INT NOT NULL AUTO_INCREMENT PRIMARY KEY, time VARCHAR(20), pm2_5 FLOAT, pm10 FLOAT, temp FLOAT, humidity FLOAT, pressure FLOAT, p1_limit_lower FLOAT, p1_limit_upper FLOAT);")
-        cursor.execute("CREATE TABLE IF NOT EXISTS forecast_" + str(data_sensor) + " (id INT NOT NULL AUTO_INCREMENT PRIMARY KEY, time VARCHAR(20), pm2_5 FLOAT, pm10 FLOAT, temp FLOAT, humidity FLOAT, pressure FLOAT, p1_limit_lower FLOAT, p1_limit_upper FLOAT);")
-        cursor.execute("INSERT INTO forecast_" + str(data_sensor) + " (time, pm2_5, pm10, temp, humidity, pressure, p1_limit_lower, p1_limit_upper) VALUES ('" + row.ds.strftime('%Y-%m-%d %H:%M:%S') + "', " + str(round(row.yhat, 2)) + ", 0, 0, 0, 0, " + str(round(row.yhat_lower, 2)) + ", " + str(round(row.yhat_upper, 2)) + ");")
+        cursor.execute("CREATE TABLE IF NOT EXISTS forecast_" + str(data_sensor) + " (id INT NOT NULL AUTO_INCREMENT PRIMARY KEY, time VARCHAR(20), pm10 FLOAT, pm2_5 FLOAT, temp FLOAT, humidity FLOAT, pressure FLOAT, p1_limit_lower FLOAT, p1_limit_upper FLOAT);")
+        cursor.execute("INSERT INTO forecast_" + str(data_sensor) + " (time, pm10, pm2_5, temp, humidity, pressure, p1_limit_lower, p1_limit_upper) VALUES ('" + row.ds.strftime('%Y-%m-%d %H:%M:%S') + "', " + str(round(row.yhat, 2)) + ", 0, 0, 0, 0, " + str(round(row.yhat_lower, 2)) + ", " + str(round(row.yhat_upper, 2)) + ");")
         cursor.close()
     except mysql.connector.Error as err:
         print("Exception during the writing process: " + str(err))
