@@ -26,4 +26,17 @@ The algorithm takes the loaded data and merges it in a single csv file. This csv
 After this, we feed the data to our machine learning library (prophet) and start the learning cycle. This can take very long, depending on the number of selected data records. After this, the model for the nural network will be saved to `model.pkl`.
 At last, we plot the whole forecast to a html file - `temp-plot.html`.
 
+## Customization options
+There are some command line arguments to customize the input data, that will be used for training the algorithm as well as the ouput options:
+
+| Short form | Long form | Description | Expecting | Default value |
+|------------|-------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-------------------------------------------|-----------------------------|
+| -s | --sensor | The chip id for the sensor, whose date is to be consumed. | Integer | - (required attrribute) |
+| -f | --from | The timestamp in milliseconds, where we have to beginn loading the data. | Integer | Current datetime - one year |
+| -t | --to | The timestamp in milliseconds, where we have to stop loading the data. | Integer | Current datetime |
+| -freq | --frequency | The unit for the period which will be predicted. Use on of the following: seconds, minutes, hours, days. Example: Pass -freq hours and -p 10 to get the prediction for the next 10 hours after the specified to datetime. | String (seconds / minutes / hours / days) | minutes |
+| -p | --periods | The periods which will be predicted. Example: Pass -freq days and -p 10 to get the prediction for the next 10 days after the specified to datetime. | Integer | 7200 (5 days) |
+
+You also can look them up by entering: `$ python forecast.py -h` or `$ python forecast.py --help`.
+
 © M&R Games 2019 (Designed and developed by Marc Auberer in 2019)
