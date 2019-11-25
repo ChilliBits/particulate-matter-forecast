@@ -125,6 +125,7 @@ forecast_data = forecast[['ds', 'yhat', 'yhat_lower', 'yhat_upper']].tail(period
 # Save predicted records to seperate databases
 print("Saving prediction to databases ...")
 db = config.connectToDbServer()
+previous_db_name = ""
 for i in tqdm(range(periods)):
     row = forecast_data.iloc[i]
     # Get name of database
@@ -132,10 +133,12 @@ for i in tqdm(range(periods)):
     month = int(row.ds.strftime('%m'))
     db_name = "forecast_" + str(year) + "_" + (str(month) if(month > 9) else "0" + str(month))
     try:
-        cursor = db.cursor()
-        cursor.execute("CREATE DATABASE IF NOT EXISTS " + db_name + ";")
-        cursor.close()
-        db = config.connectToDb(db_name)
+        if db_name != previous_db_name:
+            cursor = db.cursor()
+            cursor.execute("CREATE DATABASE IF NOT EXISTS " + db_name + ";")
+            cursor.close()
+            previous_db_name = db_name
+            db = config.connectToDb(db_name)
         cursor = db.cursor()
         # print("CREATE TABLE IF NOT EXISTS forecast_" + str(data_sensor) + " (id INT NOT NULL AUTO_INCREMENT PRIMARY KEY, time VARCHAR(20), pm2_5 FLOAT, pm10 FLOAT, temp FLOAT, humidity FLOAT, pressure FLOAT, p1_limit_lower FLOAT, p1_limit_upper FLOAT);")
         cursor.execute("CREATE TABLE IF NOT EXISTS forecast_" + str(data_sensor) + " (id INT NOT NULL AUTO_INCREMENT PRIMARY KEY, time VARCHAR(20), pm10 FLOAT, pm2_5 FLOAT, temp FLOAT, humidity FLOAT, pressure FLOAT, p1_limit_lower FLOAT, p1_limit_upper FLOAT);")
