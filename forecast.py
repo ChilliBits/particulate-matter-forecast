@@ -38,6 +38,7 @@ parser.add_argument("-f", "--from", help="The timestamp in milliseconds, where w
 parser.add_argument("-t", "--to", help="The timestamp in milliseconds, where we have to stop loading the data. Leave blank / not set this argument to provide the data till now.", type=int, dest="date_to", default=current_millis)
 parser.add_argument("-freq", "--frequency", help="The unit for the period which will be predicted. Use on of the following: seconds, minutes, hours, days. Example: Pass -freq hours and -p 10 to get the prediction for the next 10 hours after the specified to datetime.", choices=['seconds', 'minutes', 'hours', 'days'], type=str.lower, default="minutes")
 parser.add_argument("-p", "--periods", help="The periods which will be predicted. Example: Pass -freq days and -p 10 to get the prediction for the next 10 days after the specified to datetime.", type=int, default=7200)
+parser.add_argument("-e", "--export-file", help="Filename / filepath if you want to export the predicing result as html file. Leave blank when you not like to export data.", type=str, default="")
 args = parser.parse_args()
 
 # Start parameters
@@ -46,6 +47,7 @@ data_from = args.date_from
 data_to = args.date_to
 frequency = selectFrequency(args.frequency) #args.frequency[0].upper()
 periods = args.periods
+export_path = args.export_file
 
 # Get start and end of date range
 start = datetime.datetime.fromtimestamp(data_from / 1000.0)
@@ -118,9 +120,12 @@ print("Predicted values:")
 forecast_data = forecast[['ds', 'yhat', 'yhat_lower', 'yhat_upper']].tail(periods)
 
 # Dump the predicing result to a html file
-#print("Saving dump ...")
-#fig = plot_plotly(m=m, fcst=forecast)
-#fig.write_image("prediction.png")
+if(export_file != "" and os.access(os.path.dirname(export_path), os.W_OK)):
+    print("Saving dump ...")
+    fig = plot_plotly(m=m, fcst=forecast)
+    fig.plot()
+else:
+    print("Error exporting. No valid path or cannot access path!")
 
 # Save predicted records to seperate databases
 print("Saving prediction to databases ...")
@@ -140,7 +145,6 @@ for i in tqdm(range(periods)):
             previous_db_name = db_name
             db = config.connectToDb(db_name)
         cursor = db.cursor()
-        # print("CREATE TABLE IF NOT EXISTS forecast_" + str(data_sensor) + " (id INT NOT NULL AUTO_INCREMENT PRIMARY KEY, time VARCHAR(20), pm2_5 FLOAT, pm10 FLOAT, temp FLOAT, humidity FLOAT, pressure FLOAT, p1_limit_lower FLOAT, p1_limit_upper FLOAT);")
         cursor.execute("CREATE TABLE IF NOT EXISTS forecast_" + str(data_sensor) + " (id INT NOT NULL AUTO_INCREMENT PRIMARY KEY, time VARCHAR(20), pm10 FLOAT, pm2_5 FLOAT, temp FLOAT, humidity FLOAT, pressure FLOAT, p1_limit_lower FLOAT, p1_limit_upper FLOAT);")
         cursor.execute("INSERT INTO forecast_" + str(data_sensor) + " (time, pm10, pm2_5, temp, humidity, pressure, p1_limit_lower, p1_limit_upper) VALUES ('" + row.ds.strftime('%Y-%m-%d %H:%M:%S') + "', " + str(round(row.yhat, 2)) + ", 0, 0, 0, 0, " + str(round(row.yhat_lower, 2)) + ", " + str(round(row.yhat_upper, 2)) + ");")
         cursor.close()

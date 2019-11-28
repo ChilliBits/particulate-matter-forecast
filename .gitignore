@@ -1,0 +1,9 @@
+# Ignore file for database credentials
+config.py
+config.pyc
+
+# Do not upload generated files
+model.pkl
+temp-plot.html
+tmp.csv
+tmp_clean.csv
