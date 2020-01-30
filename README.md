@@ -11,7 +11,7 @@ AI based forecast script for predicting the particulate matter values of the fut
    * Tqdm (https://github.com/tqdm/tqdm): `$ pip install tqdm`
 3. Finished!
 
-If something doesn't work, feel free to write us an email: mrgames@outlook.de
+If something doesn't work, feel free to write us an email: contact@chillibits.com
 
 ## How to use this script
 In the default configuration, the script loads the pm measurement data from 2018/11/15 to the current date from a specific sensor which can be defined by setting the command line argument to the chip id of the sensor.
@@ -39,4 +39,4 @@ There are some command line arguments to customize the input data, that will be 
 
 You also can look them up by entering: `$ python forecast.py -h` or `$ python forecast.py --help`.
 
-© M&R Games 2019 (Designed and developed by Marc Auberer in 2019)
+© ChilliBits 2020 (Designed and developed by Marc Auberer in 2019 and 2020)
