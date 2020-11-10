@@ -39,4 +39,8 @@ There are some command line arguments to customize the input data, that will be 
 
 You also can look them up by entering: `$ python forecast.py -h` or `$ python forecast.py --help`.
 
+**TODO**
+
+- [ ] try out with OrientDB (cf. https://github.com/orientechnologies/orientdb-jupyter)
+
 © ChilliBits 2020 (Designed and developed by Marc Auberer in 2019 and 2020)
