@@ -43,4 +43,4 @@ You also can look them up by entering: `$ python forecast.py -h` or `$ python fo
 
 - [ ] try out with OrientDB (cf. https://github.com/orientechnologies/orientdb-jupyter)
 
-© ChilliBits 2020 (Designed and developed by Marc Auberer in 2019 and 2020)
+© ChilliBits 2019-2021 (Designed and developed by Marc Auberer in 2019 and 2020)
